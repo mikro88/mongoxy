@@ -1,0 +1,27 @@
+{
+  "name": "mongoxy",
+  "description": "Simple mongodb wrapper",
+  "version": "0.1.1",
+  "author": "Mike Rodin <mihails.rodins@protonmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikro88/mongoxy.git"
+  },
+  "main": "./index.js",
+  "keywords": [
+    "mongodb",
+    "database",
+    "nosql"
+  ],
+  "engines": {
+    "node": ">= 4.2.6"
+  },
+  "peerDependencies": {
+    "mongodb": "^2.0"
+  },
+  "devDependencies": {
+    "mongodb": "^2.0"
+  },
+  "scripts": {},
+  "license": "MIT"
+}
