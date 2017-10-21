@@ -1,7 +1,7 @@
 {
   "name": "mongoxy",
   "description": "Simple mongodb wrapper",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Mike Rodin <mihails.rodins@protonmail.com>",
   "repository": {
     "type": "git",
