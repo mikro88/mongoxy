@@ -48,12 +48,6 @@ function _catchify (obj, catcher) {
 	})
 }
 
-/*function _definePromise(obj, value) {
-	Object.defineProperty(obj, "promise", {
-		value, writable: false, configurable: true
-	})
-}*/
-
 class _MongoxyWrapper {
 	constructor () {
 	}
@@ -68,10 +62,6 @@ class _MongoxyWrapper {
 		})
 		return value
 	}
-
-	/*_promise () {
-		return this.promise
-	}*/
 }
 
 /** Wrappers */
@@ -188,5 +178,3 @@ var exports = module.exports
 exports.db = function () {
 	return new Db(arguments)
 }
-
-exports.catchify = _catchify
