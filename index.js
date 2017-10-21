@@ -17,7 +17,7 @@ function _proxify(orig, dest) {
 			dest.prototype[methodName] = function () {
 				// var _this = this
 				/*var ret =*/
-				return this._promise().then( (proxied) => {
+				return this._promise.then( (proxied) => {
 						return proxied[methodName].apply(proxied, arguments)
 				})
 				
@@ -58,20 +58,20 @@ class _MongoxyWrapper {
 	constructor () {
 	}
 
-	get promise () {
-		this._definePromise(this._promiseCreator())
-		return this.promise 
+	get _promise () {
+		return this._definePromise(this._promiseCreator())
 	}
 
 	_definePromise(value) {
-		Object.defineProperty(this, "promise", {
+		Object.defineProperty(this, "_promise", {
 			value, writable: false, configurable: true
 		})
+		return value
 	}
 
-	_promise () {
+	/*_promise () {
 		return this.promise
-	}
+	}*/
 }
 
 /** Wrappers */
@@ -139,7 +139,7 @@ class Collection extends _MongoxyWrapper {
 	_promiseCreator () { return this._db.collection(...this._args) }
 
 	find (...args) {
-		return new Cursor(this._promise().then( (collection) => { return collection.find(...args) }), this._catcher)
+		return new Cursor(this._promise.then( (collection) => { return collection.find(...args) }), this._catcher)
 	}
 }
 _proxify(mongodb.Collection, Collection)
@@ -152,7 +152,36 @@ class Cursor extends _MongoxyWrapper {
 		// this._catcher = catcher
 	}
 }
-_proxify(mongodb.Cursor, Cursor)
+
+function _cursorifyMethod (methodName) {
+	var proxified = Cursor.prototype[methodName]
+	Cursor.prototype[methodName] = function () {
+		return new Cursor(proxified.apply(this, arguments))
+	}
+}
+
+_proxify(mongodb.Cursor, Cursor);
+[
+	'addCursorFlag', 
+	'addQueryModifier', 
+	'batchSize', 
+	'clone', 
+	'comment',
+	'filter',
+	'hint',
+	'limit',
+	'max',
+	'maxScan',
+	'maxTimeMS',
+	'min',
+	'project',
+	'setCursorOption',
+	'showRecordId',
+	'skip',
+	'snapshot',
+	'sort'
+].forEach(_cursorifyMethod)
+
 
 /** EXPORTS */
 var exports = module.exports
