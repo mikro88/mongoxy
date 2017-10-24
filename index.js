@@ -1,6 +1,8 @@
 var mongodb = require('mongodb')
 var MongoClient = mongodb.MongoClient
 
+var mongodb_AggregationCursor = require('mongodb/lib/aggregation_cursor.js')
+
 /** HELPERS */
 
 function _proxify(orig, dest) {
@@ -30,6 +32,13 @@ function _proxify(orig, dest) {
 	})
 }
 
+function _proxifyChainingMethod (cls, methodName) {
+	var proxified = cls.prototype[methodName]
+	cls.prototype[methodName] = function () {
+		return new cls(Promise.resolve(proxified.apply(this, arguments)))
+	}
+}
+/*
 function _catchify (obj, catcher) { 
 	return new Proxy(obj, { 
 		get (target, prop, receiver) {
@@ -47,7 +56,7 @@ function _catchify (obj, catcher) {
 		}
 	})
 }
-
+*/
 class _MongoxyWrapper {
 	constructor () {
 	}
@@ -129,7 +138,11 @@ class Collection extends _MongoxyWrapper {
 	_promiseCreator () { return this._db.collection(...this._args) }
 
 	find (...args) {
-		return new Cursor(this._promise.then( (collection) => { return collection.find(...args) }), this._catcher)
+		return new Cursor(this._promise.then( (collection) => { return collection.find(...args) })/*, this._catcher*/)
+	}
+
+	aggregate (...args) {
+		return new AggregationCursor(this._promise.then( (collection) => { return collection.aggregate(...args) })/*, this._catcher*/)
 	}
 }
 _proxify(mongodb.Collection, Collection)
@@ -142,14 +155,6 @@ class Cursor extends _MongoxyWrapper {
 		// this._catcher = catcher
 	}
 }
-
-function _cursorifyMethod (methodName) {
-	var proxified = Cursor.prototype[methodName]
-	Cursor.prototype[methodName] = function () {
-		return new Cursor(proxified.apply(this, arguments))
-	}
-}
-
 _proxify(mongodb.Cursor, Cursor);
 [
 	'addCursorFlag', 
@@ -170,7 +175,29 @@ _proxify(mongodb.Cursor, Cursor);
 	'skip',
 	'snapshot',
 	'sort'
-].forEach(_cursorifyMethod)
+].forEach(_proxifyChainingMethod.bind(null, Cursor))
+
+// AggregationCursor
+class AggregationCursor extends Cursor {
+}
+_proxify(mongodb_AggregationCursor, AggregationCursor);
+[
+	'batchSize', 
+	'clone', 
+	'geoNear',
+	'group',
+	'limit',
+	'lookup',
+	'match',
+	'maxTimeMS',
+	'out',
+	'project',
+	'redact',
+	'rewind',
+	'skip',
+	'sort',
+	'unwind'
+].forEach(_proxifyChainingMethod.bind(null, AggregationCursor))
 
 
 /** EXPORTS */
